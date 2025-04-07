@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bus Route Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+    .bus {
+      background: #e8f4ff;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .bus a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .bus a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Track Your School Bus</h2>
+    <input type="text" id="routeSearch" onkeyup="filterRoutes()" placeholder="Enter Route Number" />
+    <div id="busList"></div>
+  </div>
+
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/16AtxYNCgYRu75FwpePfsOMlquwhCejoMP6fswfO7WIs/gviz/tq?tqx=out:json';
+
+    let busData = [];
+
+    fetch(sheetURL)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows;
+        busData = rows.map(row => ({
+          route: row.c[0]?.v?.toString(),
+          busName: row.c[1]?.v,
+          link: row.c[2]?.v
+        })).filter(row => row.route && row.busName && row.link);
+
+        displayBuses(busData);
+      });
+
+    function displayBuses(data) {
+      const busList = document.getElementById('busList');
+      busList.innerHTML = '';
+      data.forEach(bus => {
+        const div = document.createElement('div');
+        div.className = 'bus';
+        div.innerHTML = `<strong>${bus.busName}</strong><br><a href="${bus.link}" target="_blank">Track Bus</a>`;
+        busList.appendChild(div);
+      });
+    }
+
+    function filterRoutes() {
+      const value = document.getElementById('routeSearch').value.trim();
+      const filtered = busData.filter(bus => bus.route === value);
+      displayBuses(filtered);
+    }
+  </script>
+</body>
+</html>
